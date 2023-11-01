@@ -1,0 +1,4 @@
+root=true
+
+[*.{cs,xml}]
+indent_style = tab

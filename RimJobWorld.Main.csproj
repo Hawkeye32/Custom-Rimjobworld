@@ -1,0 +1,255 @@
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{22F82FFF-8BD4-4CEE-9F22-C7DA71281E72}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>RJW</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <ShouldCreateLogs>True</ShouldCreateLogs>
+    <AdvancedSettingsExpanded>True</AdvancedSettingsExpanded>
+    <UpdateAssemblyVersion>True</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>True</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>True</UpdateAssemblyInfoVersion>
+    <AssemblyVersionSettings>None.None.IncrementOnDemand.Increment</AssemblyVersionSettings>
+    <AssemblyFileVersionSettings>None.None.IncrementOnDemand.None</AssemblyFileVersionSettings>
+    <AssemblyInfoVersionSettings>None.None.IncrementOnDemand.None</AssemblyInfoVersionSettings>
+    <PrimaryVersionType>AssemblyVersionAttribute</PrimaryVersionType>
+    <AssemblyVersion>1.6.0.493</AssemblyVersion>
+    <LangVersion>10</LangVersion>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Assemblies\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <FileAlignment>4096</FileAlignment>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Assemblies\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <!-- Set the `BENCHMARK` environment variable to "1" to enable benchmarking. -->
+  <PropertyGroup Condition="'$(BENCHMARK)' == '1'">
+    <DefineConstants>$(DefineConstants);BENCHMARK</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>rjw</RootNamespace>
+  </PropertyGroup>
+  <Choose>
+    <!-- Mod-folder Relative -->
+    <When Condition="Exists('..\..\..\..\Mods')">
+      <PropertyGroup>
+        <RWPath>..\..\..\..</RWPath>
+      </PropertyGroup>
+    </When>
+    <!-- Windows x86 -->
+    <When Condition="Exists('C:\Program Files (x86)\Steam\steamapps\common\RimWorld')">
+      <PropertyGroup>
+        <RWPath>C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RWPath>
+      </PropertyGroup>
+    </When>
+    <!-- Windows x64 -->
+    <When Condition="Exists('C:\Program Files\Steam\steamapps\common\RimWorld')">
+      <PropertyGroup>
+        <RWPath>C:\Program Files\Steam\steamapps\common\RimWorld</RWPath>
+      </PropertyGroup>
+    </When>
+    <!-- Linux -->
+    <When Condition="Exists('$(HOME)\.steam\steam')">
+      <PropertyGroup>
+        <RWPath>$(HOME)\.steam\steam\steamapps\common\RimWorld</RWPath>
+      </PropertyGroup>
+    </When>
+    <!-- MacOS -->
+    <When Condition="Exists('$(HOME)\Library\Application Support\Steam')">
+      <PropertyGroup>
+        <RWPath>$(HOME)\Library\Application Support\Steam\steamapps\common\RimWorld</RWPath>
+      </PropertyGroup>
+    </When>
+    <!-- Fallback option: define the RIMWORLD environment variable, pointing to RimWorld's install folder -->
+    <When Condition="Exists('$(RIMWORLD)')">
+      <PropertyGroup>
+        <RWPath>$(RIMWORLD)</RWPath>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  <PropertyGroup>
+    <ReferencePath>
+      $(RWPath)\RimWorldWin_Data\Managed;
+      $(RWPath)\RimWorldWin64_Data\Managed;
+      $(RWPath)\RimWorldLinux_Data\Managed;
+      $(RWPath)\RimWorldMac.app\Contents\Resources\Data\Managed;
+      $(ReferencePath)
+    </ReferencePath>
+  </PropertyGroup>
+  <!-- Prevents copying DLLs on build. -->
+  <!-- If you do still get copies, wipe out the `obj` folder and re-run the `restore` task. -->
+  <!-- You can do this on the command line with: `msbuild /t:restore` -->
+  <ItemDefinitionGroup>
+    <Reference><Private>False</Private></Reference>
+    <ProjectReference><Private>False</Private></ProjectReference>
+    <PackageReference><ExcludeAssets>runtime</ExcludeAssets></PackageReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Compile Include=".\**\*.cs" />
+    <!-- Ignore files in `obj`; they'll be included else where, as needed. -->
+    <Compile Remove=".\obj\**\*.cs" />
+    <!-- Things in trash are in trash for a reason, I presume.  Maybe delete them? -->
+    <Compile Remove=".\0trash\**\*.cs" />
+    <!-- Exclude files not currently in use here. -->
+    <!-- Better yet, clean up your garbage.  If we need it again, Git keeps a copy for us. -->
+    <Compile Remove=".\Common\ExpandedPawnCharacterCard.cs" />
+    <Compile Remove=".\Common\Verb_Fuck.cs" />
+    <Compile Remove=".\Common\CORE_EXPOSED\HealthCardUtility.cs" />
+    <Compile Remove=".\JobDrivers\JobRJWSex.cs" />
+    <Compile Remove=".\JobDrivers\JobDriver_AbortMechPregnancy.cs" />
+    <Compile Remove=".\RJWTab\PawnColumnWorker_Master.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_BestialityForFemale.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Quickie.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_ViolateCorpse.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_BestialityForMale.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Masturbate_Quick.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_RapeEnemy.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_BestialityF.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Rape.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Sex.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_CleanSexStuff.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_RapeCP.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Masturbate_Bed.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_BestialityM.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Solicit.cs" />
+    <Compile Remove=".\WorkGivers\WorkGiver_Masturbate_Chair.cs" />
+    <Compile Remove=".\Harmony\patch_PartIsMissing.cs" />
+    <Compile Remove=".\Harmony\d.cs" />
+    <Compile Remove=".\Harmony\patch_need.cs" />
+    <Compile Remove=".\Harmony\test.cs" />
+    <Compile Remove=".\Harmony\patch_CnPBnC.cs" />
+    <Compile Remove=".\Harmony\Building_Bed_Patch.cs" />
+    <Compile Remove=".\Harmony\CnPcompatibility.cs" />
+    <Compile Remove=".\Harmony\patch_AnimalTab.cs" />
+    <Compile Remove=".\DefOf\RJW_RecipeDefOf.cs" />
+    <Compile Remove=".\DefOf\JobDriver_AdjustParts.cs" />
+    <Compile Remove=".\DefOf\JobDefOf.cs" />
+    <Compile Remove=".\Modules\Bondage\Comps\CompCryptoStamped.cs" />
+    <Compile Remove=".\Modules\Genitals\Enums\LewdablePartKind.cs" />
+    <Compile Remove=".\Recipes\Install_Part\Recipe_InstallGenitals.cs" />
+    <Compile Remove=".\Recipes\Install_Part\Recipe_InstallBreasts.cs" />
+    <Compile Remove=".\Recipes\Install_Part\Recipe_InstallAnus.cs" />
+    <Compile Remove=".\Recipes\Recipe_ShrinkBreasts.cs" />
+    <Compile Remove=".\Recipes\Recipe_GrowBreasts.cs" />
+    <Compile Remove=".\Recipes\Remove_Part\Recipe_RemovePenis.cs" />
+    <Compile Remove=".\Recipes\Remove_Part\Recipe_RemoveVagina.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0MultiplayerAPI, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>0trash\packages\RimWorld.MultiplayerAPI.0.3.0\lib\net472\0MultiplayerAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="Psychology">
+      <HintPath>0trash\modpackages\Psychology.2018-11-18\Assemblies\Psychology.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RimWorldChildren">
+      <HintPath>0trash\modpackages\ChildrenAndPregnancy.0.4e\Assemblies\RimWorldChildren.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="SyrTraits">
+      <HintPath>0trash\modpackages\SYR.Individuality.1.1.7\1.1\Assemblies\SyrTraits.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation" />
+    <!-- RimWorld references -->
+    <Reference Include="Assembly-CSharp" />
+    <Reference Include="ISharpZipLib" />
+    <Reference Include="Unity.TextMeshPro" />
+    <Reference Include="UnityEngine.AIModule" />
+    <Reference Include="UnityEngine.AccessibilityModule" />
+    <Reference Include="UnityEngine.AndroidJNIModule" />
+    <Reference Include="UnityEngine.AnimationModule" />
+    <Reference Include="UnityEngine.AssetBundleModule" />
+    <Reference Include="UnityEngine.AudioModule" />
+    <Reference Include="UnityEngine.ClothModule" />
+    <Reference Include="UnityEngine.ClusterInputModule" />
+    <Reference Include="UnityEngine.ClusterRendererModule" />
+    <Reference Include="UnityEngine.CoreModule" />
+    <Reference Include="UnityEngine.CrashReportingModule" />
+    <Reference Include="UnityEngine.DSPGraphModule" />
+    <Reference Include="UnityEngine.DirectorModule" />
+    <Reference Include="UnityEngine.GameCenterModule" />
+    <Reference Include="UnityEngine.GridModule" />
+    <Reference Include="UnityEngine.HotReloadModule" />
+    <Reference Include="UnityEngine.IMGUIModule" />
+    <Reference Include="UnityEngine.ImageConversionModule" />
+    <Reference Include="UnityEngine.InputLegacyModule" />
+    <Reference Include="UnityEngine.InputModule" />
+    <Reference Include="UnityEngine.JSONSerializeModule" />
+    <Reference Include="UnityEngine.LocalizationModule" />
+    <Reference Include="UnityEngine.ParticleSystemModule" />
+    <Reference Include="UnityEngine.PerformanceReportingModule" />
+    <Reference Include="UnityEngine.Physics2DModule" />
+    <Reference Include="UnityEngine.PhysicsModule" />
+    <Reference Include="UnityEngine.ProfilerModule" />
+    <Reference Include="UnityEngine.ScreenCaptureModule" />
+    <Reference Include="UnityEngine.SharedInternalsModule" />
+    <Reference Include="UnityEngine.SpriteMaskModule" />
+    <Reference Include="UnityEngine.SpriteShapeModule" />
+    <Reference Include="UnityEngine.StreamingModule" />
+    <Reference Include="UnityEngine.SubstanceModule" />
+    <Reference Include="UnityEngine.TLSModule" />
+    <Reference Include="UnityEngine.TerrainModule" />
+    <Reference Include="UnityEngine.TerrainPhysicsModule" />
+    <Reference Include="UnityEngine.TextCoreModule" />
+    <Reference Include="UnityEngine.TextRenderingModule" />
+    <Reference Include="UnityEngine.TilemapModule" />
+    <Reference Include="UnityEngine.UI" />
+    <Reference Include="UnityEngine.UIElementsModule" />
+    <Reference Include="UnityEngine.UIModule" />
+    <Reference Include="UnityEngine.UNETModule" />
+    <Reference Include="UnityEngine.UmbraModule" />
+    <Reference Include="UnityEngine.UnityAnalyticsModule" />
+    <Reference Include="UnityEngine.UnityConnectModule" />
+    <Reference Include="UnityEngine.UnityTestProtocolModule" />
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule" />
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule" />
+    <Reference Include="UnityEngine.UnityWebRequestModule" />
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule" />
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule" />
+    <Reference Include="UnityEngine.VFXModule" />
+    <Reference Include="UnityEngine.VRModule" />
+    <Reference Include="UnityEngine.VehiclesModule" />
+    <Reference Include="UnityEngine.VideoModule" />
+    <Reference Include="UnityEngine.WindModule" />
+    <Reference Include="UnityEngine.XRModule" />
+    <Reference Include="UnityEngine" />
+    <!-- The following are not available on all platforms, IE Linux. -->
+      <!-- <Reference Include="UnityEngine.ARModule" /> -->
+      <!-- <Reference Include="NAudio" /> -->
+      <!-- <Reference Include="NVorbis" /> -->
+    <!-- end RimWorld references -->
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+    <PackageReference Include="UnlimitedHugs.Rimworld.HugsLib" Version="10.0.1" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>
