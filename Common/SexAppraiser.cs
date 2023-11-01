@@ -429,9 +429,9 @@ namespace rjw
 					float opi = !invert_opinion ? fucker.relations.OpinionOf(fucked) : 100 - fucker.relations.OpinionOf(fucked); // -100 to 100
 					opinion_factor = 0.8f + (opi + 100.0f) * (.45f / 200.0f); // 0.8 to 1.25
 				}
-				else if ((xxx.is_animal(fucker) || xxx.is_animal(fucked)) && fucker.relations.DirectRelationExists(PawnRelationDefOf.Bond, fucked))
+				else if ((fucker.Faction != null) && (fucker.Faction == Faction.OfPlayer) && ((xxx.is_animal(fucker) || xxx.is_animal(fucked)) && fucker.relations.DirectRelationExists(PawnRelationDefOf.Bond, fucked) || xxx.is_animal(fucked) && fucked.playerSettings.RespectedMaster != null && fucked.playerSettings.RespectedMaster == fucker))
 				{
-					opinion_factor = 1.3f;
+					opinion_factor = 6f;
 				}
 				else
 				{

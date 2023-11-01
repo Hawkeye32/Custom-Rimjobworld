@@ -209,6 +209,7 @@ namespace rjw
 							thoughtDef = (zoophile_got_groped);
 					}
 				}
+				if (RJWSettings.DevMode) ModLog.Message("This being Called?");
 				think_about_sex_Bestiality_TameAttempt(pawn, partner, isReceiving, props, whoring, masochist, zoophile, guilty);
 			}
 			return thoughtDef;
@@ -225,10 +226,11 @@ namespace rjw
 			bool guilty
 			)
 		{
+			if (RJWSettings.DevMode) ModLog.Message("This being Called again?");
 			if (pawn.CurJob != null)
-				if (!(pawn.Downed && partner.Downed))
 					if (!partner.Dead && zoophile && (pawn.CurJob.def != xxx.gettin_raped) && partner.Faction == null && pawn.Faction == Faction.OfPlayer)
 					{
+						
 						InteractionDef intDef = !partner.AnimalOrWildMan() ? InteractionDefOf.RecruitAttempt : InteractionDefOf.TameAttempt;
 						pawn.interactions.TryInteractWith(partner, intDef);
 					}

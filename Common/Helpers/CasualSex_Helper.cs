@@ -55,7 +55,7 @@ namespace rjw
 			string pawnName = xxx.get_pawnname(pawn);
 			if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): starting.");
 
-			bool pawnIsNympho = xxx.is_nympho(pawn);
+			bool pawnIsNympho = xxx.is_nympho(pawn) || xxx.is_animal(pawn);
 			bool pawnCanPickAnyone = RJWSettings.WildMode;// || (pawnIsNympho && RJWHookupSettings.NymphosCanPickAnyone);
 			bool pawnCanPickAnimals = (pawnCanPickAnyone || xxx.is_zoophile(pawn)) && RJWSettings.bestiality_enabled;
 
@@ -100,76 +100,82 @@ namespace rjw
 				if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): considering {targets.Count} targets");
 
 				// find lover/partner on same map
-				List<Pawn> partners = targets.Where(x
-					=> pawn.relations.DirectRelationExists(PawnRelationDefOf.Lover, x)
-					|| pawn.relations.DirectRelationExists(PawnRelationDefOf.Fiance, x)
-					|| pawn.relations.DirectRelationExists(PawnRelationDefOf.Spouse, x)
-					).ToList();
+					List<Pawn> partners = targets.Where(x
+					  => pawn.relations.DirectRelationExists(PawnRelationDefOf.Lover, x)
+					  || pawn.relations.DirectRelationExists(PawnRelationDefOf.Fiance, x)
+					  || pawn.relations.DirectRelationExists(PawnRelationDefOf.Spouse, x)
+					  || pawn.relations.DirectRelationExists(PawnRelationDefOf.Bond, x)
+					  ||(pawn.IsAnimal() && pawn.playerSettings.RespectedMaster == x)
+					  ).ToList();
 
-				if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): considering {partners.Count} partners");
 
-				if (partners.Any())
-				{
-					partners.Shuffle(); //Randomize order.
-					foreach (Pawn target in partners)
+					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): considering {partners.Count} partners");
+
+					if (partners.Any())
 					{
-						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): checking lover {xxx.get_pawnname(target)}");
-
-						//interruptible jobs
-						if (!bedsex && target.jobs?.curJob != null &&
-							(target.jobs.curJob.playerForced ||
-							!CasualSex_Helper.quickieAllowedJobs.Contains(target.jobs.curJob.def)
-							))
+						partners.Shuffle(); //Randomize order.
+						foreach (Pawn target in partners)
 						{
-							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_pawn_to_fuck({pawnName}): lover has important job ({target.jobs.curJob.def}), skipping");
-							continue;
-						}
-						if (Pather_Utility.cells_to_target_casual(pawn, target.Position)
-							&& pawn.CanReserveAndReach(target, PathEndMode.OnCell, Danger.Some, 1, 0)
-							&& target.CanReserve(pawn, 1, 0)
-							&& SexAppraiser.would_fuck(pawn, target) > 0.1f
-							&& SexAppraiser.would_fuck(target, pawn) > 0.1f)
-						{
-							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): banging lover {xxx.get_pawnname(target)}");
-							return target;
-						}
-					}
-				}
+							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): checking lover {xxx.get_pawnname(target)}");
 
-				// No lovers around... see if the pawn fancies a hookup.  Nymphos and frustrated pawns always do!
-				if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): no partners available.  checking canHookup");
-				bool canHookup = pawnIsNympho || pawnCanPickAnyone || xxx.is_frustrated(pawn) || (xxx.is_horny(pawn) && Rand.Value < RJWHookupSettings.HookupChanceForNonNymphos);
-				if (!canHookup)
-				{
-					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): no hookup today");
-					return null;
-				}
+							//interruptible jobs
+							if (!xxx.is_animal(pawn))
+							{
+								if (!bedsex && target.jobs?.curJob != null &&
+									(target.jobs.curJob.playerForced ||
+									!CasualSex_Helper.quickieAllowedJobs.Contains(target.jobs.curJob.def)
+									))
+								{
 
-				// No cheating from casual hookups... would probably make colony relationship management too annoying
-				if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): checking canHookupWithoutCheating");
-				bool hookupWouldBeCheating = xxx.HasNonPolyPartner(pawn);
-				if (hookupWouldBeCheating)
-				{
-					if (RJWHookupSettings.NymphosCanCheat && pawnIsNympho && xxx.is_frustrated(pawn))
-					{
-						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I'm a nympho and I'm so frustrated that I'm going to cheat");
-						// No return here so they continue searching for hookup
+									if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_pawn_to_fuck({pawnName}): lover has important job ({target.jobs.curJob.def}), skipping");
+									continue;
+								}
+							}
+							if (Pather_Utility.cells_to_target_casual(pawn, target.Position)
+								&& pawn.CanReserveAndReach(target, PathEndMode.OnCell, Danger.Some, 1, 0)
+								&& target.CanReserve(pawn, 1, 0)
+								&& SexAppraiser.would_fuck(pawn, target) > 0.1f
+								&& SexAppraiser.would_fuck(target, pawn) > 0.1f)
+							{
+								if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): banging lover {xxx.get_pawnname(target)}");
+								return target;
+							}
+						}
 					}
-					else if (pawn.health.hediffSet.HasHediff(HediffDef.Named("AlcoholHigh")))
+					// No lovers around... see if the pawn fancies a hookup.  Nymphos and frustrated pawns always do!
+					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): no partners available.  checking canHookup");
+					bool canHookup = pawnIsNympho || pawnCanPickAnyone || xxx.is_frustrated(pawn) || (xxx.is_horny(pawn) && Rand.Value < RJWHookupSettings.HookupChanceForNonNymphos);
+					if (!canHookup)
 					{
-						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I want to bang and im too drunk to care if its cheating");
-					}
-					else
-					{
-						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I want to bang but that's cheating");
+						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): no hookup today");
 						return null;
 					}
-				}
+
+					// No cheating from casual hookups... would probably make colony relationship management too annoying
+					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): checking canHookupWithoutCheating");
+					bool hookupWouldBeCheating = xxx.HasNonPolyPartner(pawn);
+					if (hookupWouldBeCheating)
+					{
+						if (RJWHookupSettings.NymphosCanCheat && pawnIsNympho && xxx.is_frustrated(pawn))
+						{
+							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I'm a nympho and I'm so frustrated that I'm going to cheat");
+							// No return here so they continue searching for hookup
+						}
+						else if (pawn.health.hediffSet.HasHediff(HediffDef.Named("AlcoholHigh")))
+						{
+							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I want to bang and im too drunk to care if its cheating");
+						}
+						else
+						{
+							if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" find_partner({pawnName}): I want to bang but that's cheating");
+							return null;
+						}
+					}	
 			}
 			Pawn best_fuckee = FindBestPartner(pawn, targets, pawnCanPickAnyone, pawnIsNympho);
 			return best_fuckee;
 		}
-
+			
 		/// <summary> Checks all of our potential partners to see if anyone's eligible, returning the most attractive and convenient one. </summary>
 		public static Pawn FindBestPartner(Pawn pawn, List<Pawn> targets, bool pawnCanPickAnyone, bool pawnIsNympho)
 		{
@@ -190,13 +196,16 @@ namespace rjw
 					continue;
 
 				//interruptible jobs
-				if (targetPawn.jobs?.curJob != null &&
-					(targetPawn.jobs.curJob.playerForced ||
-					!CasualSex_Helper.quickieAllowedJobs.Contains(targetPawn.jobs.curJob.def)
-					))
+				if (!xxx.is_animal(pawn))
 				{
-					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" FindBestPartner({pawnName}): targetPawn has important job ({targetPawn.jobs.curJob.def}, playerForced: {targetPawn.jobs.curJob.playerForced}), skipping");
-					continue;
+					if (targetPawn.jobs?.curJob != null &&
+						(targetPawn.jobs.curJob.playerForced ||
+						!CasualSex_Helper.quickieAllowedJobs.Contains(targetPawn.jobs.curJob.def)
+						))
+					{
+						if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" FindBestPartner({pawnName}): targetPawn has important job ({targetPawn.jobs.curJob.def}, playerForced: {targetPawn.jobs.curJob.playerForced}), skipping");
+						continue;
+					}
 				}
 
 				// Check for homewrecking (banging a pawn who's in a relationship)
@@ -220,7 +229,7 @@ namespace rjw
 				}
 
 				// If the pawn has had sex recently and isn't horny right now, skip them.
-				if (!SexUtility.ReadyForLovin(targetPawn) && !xxx.is_hornyorfrustrated(targetPawn))
+				if (!SexUtility.ReadyForLovin(targetPawn) && !xxx.is_hornyorfrustrated(targetPawn) && !xxx.is_animal(pawn))
 				{
 					if (RJWSettings.DebugLogJoinInBed) ModLog.Message($" FindBestPartner({pawnName}): hookup {xxx.get_pawnname(targetPawn)} isn't ready for lovin'");
 					continue;
